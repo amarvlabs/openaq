@@ -1,0 +1,30 @@
+.main-container {
+  height: 100%;
+  flex-direction: column;
+  justify-content: top;
+  align-items: center;
+
+  // @include media-breakpoint-up(sm) {
+  //   height: 100vh;
+  // }
+}
+
+label {
+  color: white !important;
+}
+
+input {
+  color: white !important;
+}
+
+.textFieldClass .MuiOutlinedInput-notchedOutline {
+  border-color: white !important;
+}
+
+.textFieldClass .MuiInputBase-root-MuiOutlinedInput-root:hover {
+  border-color: white !important;
+}
+
+.textFieldClass .MuiInputBase-root-MuiOutlinedInput-root .Mui-focused {
+  border-color: white !important;
+}

@@ -1,0 +1,14 @@
+// Abstracts: global variables, helpers, mixins, etc.
+@import './abstracts/mixins';
+@import './abstracts/helpers';
+@import './abstracts/variables';
+
+// Base: global styles (resets, typography, colors, etc)
+@import './base/reset';
+@import './base/typography';
+
+// Components: styling for each components
+@import './components/card';
+
+// Pages: page-specific styling
+@import './pages/home';
