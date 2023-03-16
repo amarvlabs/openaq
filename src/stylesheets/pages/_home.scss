@@ -1,12 +1,28 @@
 .main-container {
   height: 100%;
   flex-direction: column;
-  justify-content: top;
+  justify-content: flex-start;
   align-items: center;
+  display: flex;
 
-  // @include media-breakpoint-up(sm) {
-  //   height: 100vh;
-  // }
+  @include media-breakpoint-up(sm) {
+    height: 100vh;
+    text-align: -webkit-center;
+  }
+  @include media-breakpoint-up(xs) {
+    display: block;
+    height: 100vh;
+    text-align: -webkit-center;
+  }
+}
+
+.highchart {
+  margin-right: 20px;
+  margin-top: 20px;
+}
+
+.details {
+  color: white;
 }
 
 label {

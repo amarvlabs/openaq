@@ -1,0 +1,31 @@
+.inputs {
+    z-index: 0;
+    flex-wrap: wrap;
+    max-width: calc(#{$search-width} * 2 + 80px);
+    justify-content: center;
+    display: flex;
+
+    @include media-breakpoint-up(xs) {
+        flex-direction: column;
+        display: block;
+    }
+
+    @include media-breakpoint-up(lg) {
+        flex-direction: row;
+    }
+}
+
+.input {
+    width: $search-width;
+    max-width: $search-width;
+    margin-top: 0px;
+
+    @include media-breakpoint-up(xs) {
+        margin-top: 16px;
+    }
+
+    @include media-breakpoint-up(sm) {
+        margin-right: 16px;
+        margin-top: 16px;
+    }
+}

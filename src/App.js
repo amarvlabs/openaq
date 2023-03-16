@@ -26,14 +26,15 @@ const App = () => {
   }, [setParameters]);
 
   return (
-    <div className='main-container d-flex p-20'>
+    <div className='main-container p-20'>
       <div>
         <h1 className='text-white text-center'>Air Quality Index</h1>
       </div>
 
       <SearchInput />
-      <LocationCard />
-      <ParameterTable />
+        {/* <LocationCard /> */}
+        <ParameterTable />
+        <LocationCard />
     </div>
   );
 };

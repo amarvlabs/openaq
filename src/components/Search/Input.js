@@ -1,6 +1,5 @@
 import React, { useContext, useEffect } from 'react';
 import TextField from '@mui/material/TextField';
-import Stack from '@mui/material/Stack';
 import Autocomplete from '@mui/material/Autocomplete';
 import { CountryContext, LocationContext } from '../../Store';
 import { getData } from '../../services/airquality';
@@ -9,7 +8,13 @@ const SearchInput = () => {
   const [countriesList, setCountry] = useContext(CountryContext);
   const [locationsList, setLocation] = useContext(LocationContext);
 
-  const handleChange = (newValue, setMethod, list) => {
+  const handleChange = (entity, newValue, setMethod, list) => {
+    if (entity === 'country') {
+      setLocation({
+        inputValue: '',
+        locations: []
+      });
+    }
     setMethod({
       ...list,
       inputValue: newValue
@@ -37,26 +42,24 @@ const SearchInput = () => {
 
   return (
     <>
-      <Stack spacing={2} sx={{ width: 300 }}>
+      <div className='inputs'>
         <Autocomplete
           id="selectCountry"
           freeSolo
           options={renderResults(countriesList.countries)}
-          value={countriesList.inputValue}
-          onChange={(event, newValue) => handleChange(newValue, setCountry, countriesList)}
+          onChange={(event, newValue) => handleChange('country', newValue, setCountry, countriesList)}
           renderInput={(params) => <TextField {...params} label="Enter Country" className='textFieldClass' />}
-          className='position-relative'
+          className='position-relative input'
         />
         <Autocomplete
           id="selectCity"
           freeSolo
           options={renderResults(locationsList.locations)}
-          value={locationsList.inputValue}
-          onChange={(event, newValue) => handleChange(newValue, setLocation, locationsList)}
+          onChange={(event, newValue) => handleChange('location', newValue, setLocation, locationsList)}
           renderInput={(params) => <TextField {...params} label="Enter City" className='textFieldClass' />}
-          className='position-relative'
+          className='position-relative input margin'
         />
-      </Stack>
+      </div>
     </>
   );
 };
