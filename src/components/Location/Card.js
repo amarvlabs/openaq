@@ -15,19 +15,19 @@ const LocationCard = () => {
     const { locations, inputValue } = locationsList;
 
     useEffect(() => {
-        if (locations.length && inputValue) {
-            const selected = locations.find(element => element.name.toLowerCase() === inputValue.toLowerCase());
+        if (locations.length && inputValue?.id) {
+            const selected = locations.find(ele => ele.id === inputValue.id);
             if (selected) {
                 setSelection(selected);
             }
         }
-    }, [inputValue, locations]);
+    }, [inputValue?.id, locations]);
 
     return (
         <div>
-            {locationsList.inputValue && (
+            {locationsList.inputValue?.id && (
                 <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }} className='details'>
-                    <Grid item xs={2} sm={4} md={4}>Country:{' '}{countriesList?.inputValue}</Grid>
+                    <Grid item xs={2} sm={4} md={4}>Country:{' '}{countriesList?.inputValue?.label}</Grid>
                     <Grid item xs={2} sm={4} md={4}>Location:{' '}{selectedLocation?.name}</Grid>
                     <Grid item xs={2} sm={4} md={4}>Sources:{' '}{selectedLocation?.sources?.length && selectedLocation?.sources[0]?.name}</Grid>
                     <Grid item xs={2} sm={4} md={4}>Latitude:{' '}{selectedLocation?.coordinates?.latitude}</Grid>

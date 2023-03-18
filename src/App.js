@@ -12,16 +12,16 @@ const App = () => {
 
   // Get the data from the API and update the context's state
   useEffect(() => {
-    const url = `https://api.openaq.org/v2/countries`
+    const url = `https://api.openaq.org/v2/countries`;
     getData(url)
-      .then(results => setCountry({ countries: results }))
+      .then(res => setCountry({ countries: res?.data?.results }))
       .catch(error => console.error(error));
   }, [setCountry]);
 
   useEffect(() => {
-    const url = `https://api.openaq.org/v2/parameters`
+    const url = `https://api.openaq.org/v2/parameters`;
     getData(url)
-      .then(results => setParameters(results))
+      .then(res => setParameters(res?.data?.results))
       .catch(error => console.error(error));
   }, [setParameters]);
 
@@ -32,9 +32,8 @@ const App = () => {
       </div>
 
       <SearchInput />
-        {/* <LocationCard /> */}
-        <ParameterTable />
-        <LocationCard />
+      <ParameterTable />
+      <LocationCard />
     </div>
   );
 };

@@ -1,7 +1,8 @@
-import * as React from 'react';
-import { LocationContext, ParameterContext } from '../../Store';
+import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react';
+import { DataContext, LocationContext, ParameterContext } from '../../Store';
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
+import moment from 'moment';
 
 const options = {
     title: {
@@ -51,29 +52,36 @@ const options = {
         title: false,
     },
     plotOptions: {
-        series: {
+        column: {
             borderRadius: 3,
-            pointPadding: 0,
-            groupPadding: 0.05,
+            pointPadding: 0.2,
+            borderWidth: 0
         }
     },
-    series: [
-        {
-            pointWidth: 24,
-            color: "#f37e09",
-            showInLegend: false,
-            data: []
-        }
-    ],
+    series: [],
+    legend: {
+        itemStyle: {
+            fontWeight: '500',
+            color: '#FFFFFF',
+        },
+    },
     accessibility: {
         enabled: false
     }
 };
 
+const colorCodings = {
+    yesterday: '#7CB5EC',
+    today: '#f37e09',
+    tomorrow: '#90ED7D'
+}
+
 export default function ParameterTable() {
-    const [parameters,] = React.useContext(ParameterContext);
-    const [locationsList,] = React.useContext(LocationContext);
-    const [config, setConfig] = React.useState(options);
+    const [parameters,] = useContext(ParameterContext);
+    const [locationsList,] = useContext(LocationContext);
+    const [data,] = useContext(DataContext);
+
+    const [config, setConfig] = useState(options);
 
     const { locations, inputValue } = locationsList;
 
@@ -86,36 +94,92 @@ export default function ParameterTable() {
         return 0;
     }
 
-    React.useEffect(() => {
-        if (inputValue) {
-            let result = [];
-            const parameterValues = parameters.map(item => item.displayName);
-            const selectedLocation = locations.find(ele => ele.name.toLowerCase() === inputValue.toLowerCase());
-            if (selectedLocation && selectedLocation?.parameters && selectedLocation?.parameters?.length) {
-                result = parameterValues.map(ele => getParameterValue(selectedLocation, ele))
+    const forecastData = useMemo(() => {
+        let result = null;
+        if (data && typeof data === 'object') {
+            const dates = {
+                [moment().subtract(1, 'days').format('YYYY-MM-DD')]: 'yesterday',
+                [moment().format('YYYY-MM-DD')]: 'today',
+                [moment().add(1, 'days').format('YYYY-MM-DD')]: 'tomorrow'
             }
-            const parsedConfig = { ...options };
-            parsedConfig.xAxis.categories = parameterValues;
-            parsedConfig.series[0].data = result;
-            setConfig(parsedConfig);
-        } else {
-            const parsedConfig = { ...options };
-            parsedConfig.xAxis.categories = [];
-            parsedConfig.series[0].data = [];
-            setConfig(parsedConfig);
+            const params = Object.keys(data?.forecast?.daily);
+            result = Object.keys(dates).map((item, index) => {
+                const todaysData = Object.keys(data.forecast.daily).map(param => data.forecast.daily[param].find(x => x.day === item));
+
+                return {
+                    name: item,
+                    paramId: params && params.length ? params[index] : null,
+                    showInLegend: true,
+                    color: colorCodings[dates[item]],
+                    data: todaysData && todaysData.length ? todaysData.map(x => x && x.avg) : []
+                };
+            });
+            return result;
         }
-    }, [inputValue, locations, parameters]);
+    }, [data]);
+
+    const getParameterNames = useCallback(() => {
+        const parameterList = forecastData.map(x => {
+            const parameter = parameters.find(p => p.name === x.paramId);
+            return parameter.displayName;
+        });
+
+        return parameterList;
+    }, [forecastData, parameters]);
+
+    const getParametersList = useCallback(() => {
+        const parameterValues = parameters.map(item => item.displayName);
+        return parameterValues;
+    }, [parameters]);
+
+    const getXAxis = useCallback(() => {
+        if (forecastData) {
+            return getParameterNames();
+        } else if (inputValue?.id) {
+            return getParametersList();
+        } else {
+            return [];
+        }
+    }, [inputValue?.id, forecastData, getParameterNames, getParametersList]);
+
+    const getChartData = useCallback(() => {
+        if (forecastData) {
+            return forecastData;
+        } else if (inputValue?.label) {
+            let result = {
+                pointWidth: 24,
+                color: "#f37e09",
+                showInLegend: false,
+                data: []
+            };
+            const selectedLocation = locations.find(ele => ele.name.toLowerCase() === inputValue?.label.toLowerCase());
+            if (selectedLocation && selectedLocation?.parameters && selectedLocation?.parameters?.length) {
+                result.data = getParametersList().map(ele => getParameterValue(selectedLocation, ele))
+            }
+            
+            return result;
+        } else {
+            return [];
+        }
+    }, [inputValue?.label, forecastData, getParametersList, locations]);
+
+    useEffect(() => {
+        const parsedConfig = { ...options };
+        parsedConfig.xAxis.categories = getXAxis();
+        parsedConfig.series = getChartData();
+        setConfig(parsedConfig);
+    }, [getChartData, getXAxis]);
 
     return (
         <>
-            {inputValue ? (
-            <div className='highchart'>
-                <HighchartsReact
-                    highcharts={Highcharts}
-                    options={config}
-                />
-            </div>
-             ): null}
+            {inputValue?.id ? (
+                <div className='highchart'>
+                    <HighchartsReact
+                        highcharts={Highcharts}
+                        options={config}
+                    />
+                </div>
+            ): null}
         </>
     );
 }
