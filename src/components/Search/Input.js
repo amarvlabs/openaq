@@ -15,7 +15,7 @@ const token = '866c0a841f081b78cfc37c592fa4206c166858f0';
 const SearchInput = () => {
   const [countriesList, setCountry] = useContext(CountryContext);
   const [locationsList, setLocation] = useContext(LocationContext);
-  const [data, setData] = useContext(DataContext);
+  const [, setData] = useContext(DataContext);
 
   const [open, setOpen] = React.useState(false);
 
@@ -27,16 +27,10 @@ const SearchInput = () => {
     setOpen(false);
   };
 
-  const action = (
-    <React.Fragment>
-      <span onClick={handleClose}>X</span>
-    </React.Fragment>
-  );
-
   const handleChange = (entity, newValue, setMethod, list) => {
     if (entity === 'countries') {
       setLocation({
-        inputValue: '',
+        inputValue: {},
         locations: []
       });
     }
@@ -73,17 +67,13 @@ const SearchInput = () => {
     if (locationsList.inputValue?.label) {
       const url = `https://api.waqi.info/feed/${locationsList.inputValue?.label}/?token=${token}`;
       getData(url)
-        .then(res => setData(res?.data?.data))
+        .then(res => {
+          setData(res?.data?.data);
+          res?.data?.status === 'ok' ? setOpen(false) : setOpen(true);
+        })
         .catch(error => console.error(error));
     }
   }, [locationsList.inputValue?.label, setData]);
-
-  useEffect(() => {
-    if (data && typeof data === 'string') {
-      setData(null);
-      setOpen(true);
-    }
-  }, [data, setData]);
 
   return (
     <>
@@ -91,6 +81,7 @@ const SearchInput = () => {
         <Autocomplete
           id="selectCountry"
           freeSolo
+          value={countriesList.inputValue?.label || ''}
           options={renderResults(countriesList.countries)}
           onChange={(event, newValue) => handleChange('countries', newValue, setCountry, countriesList)}
           renderInput={(params) => <TextField {...params} label="Enter Country" className='textFieldClass' />}
@@ -99,6 +90,7 @@ const SearchInput = () => {
         <Autocomplete
           id="selectCity"
           freeSolo
+          value={locationsList.inputValue?.label || ''}
           options={renderResults(locationsList.locations)}
           onChange={(event, newValue) => handleChange('locations', newValue, setLocation, locationsList)}
           renderInput={(params) => <TextField {...params} label="Enter City" className='textFieldClass' />}
@@ -106,13 +98,12 @@ const SearchInput = () => {
         />
         <Snackbar
           anchorOrigin={{
-            vertical: 'top',
+            vertical: 'bottom',
             horizontal: 'right'
           }}
           open={open}
           autoHideDuration={10000}
           onClose={handleClose}
-          action={action}
         >
           <Alert severity="warning">
             <p>No data found for the selected city/station.</p>

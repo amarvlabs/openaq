@@ -76,15 +76,23 @@ const colorCodings = {
     tomorrow: '#90ED7D'
 }
 
+const seriesConfig = {
+    pointWidth: 24,
+    color: "#f37e09",
+    showInLegend: false,
+    data: []
+};
+
 export default function ParameterTable() {
-    const [parameters,] = useContext(ParameterContext);
-    const [locationsList,] = useContext(LocationContext);
-    const [data,] = useContext(DataContext);
+    const [parameters,] = useContext(ParameterContext); // Data of air parameters from api.openaq.org
+    const [locationsList,] = useContext(LocationContext); // Data from api.openaq.org
+    const [data,] = useContext(DataContext); // Data from api.waqi.info
 
     const [config, setConfig] = useState(options);
 
     const { locations, inputValue } = locationsList;
 
+    // Extracting the values from parameters data of selected location
     const getParameterValue = (selectedLocation, item) => {
         const selected = selectedLocation.parameters.find(ele => ele.displayName === item);
         if (selected) {
@@ -94,6 +102,7 @@ export default function ParameterTable() {
         return 0;
     }
 
+    // extracting data from api.waqi.info
     const forecastData = useMemo(() => {
         let result = null;
         if (data && typeof data === 'object') {
@@ -118,57 +127,43 @@ export default function ParameterTable() {
         }
     }, [data]);
 
+    // Extracting the parameter names of selected location
     const getParameterNames = useCallback(() => {
-        const parameterList = forecastData.map(x => {
-            const parameter = parameters.find(p => p.name === x.paramId);
-            return parameter.displayName;
-        });
+        let parameterList = [];
+        if (forecastData) { // if data exists in api.waqi.info
+            parameterList = forecastData.map(x => {
+                const parameter = parameters.find(p => p.name === x.paramId);
+                return parameter.displayName;
+            });
+        } else if (inputValue?.id) { // else display data from api.openaq.org
+            parameterList = parameters.map(item => item.displayName);
+        }
 
         return parameterList;
-    }, [forecastData, parameters]);
-
-    const getParametersList = useCallback(() => {
-        const parameterValues = parameters.map(item => item.displayName);
-        return parameterValues;
-    }, [parameters]);
-
-    const getXAxis = useCallback(() => {
-        if (forecastData) {
-            return getParameterNames();
-        } else if (inputValue?.id) {
-            return getParametersList();
-        } else {
-            return [];
-        }
-    }, [inputValue?.id, forecastData, getParameterNames, getParametersList]);
+    }, [forecastData, parameters, inputValue?.id]);
 
     const getChartData = useCallback(() => {
-        if (forecastData) {
+        if (forecastData) { // if data exists in api.waqi.info, display past present future values
             return forecastData;
-        } else if (inputValue?.label) {
-            let result = {
-                pointWidth: 24,
-                color: "#f37e09",
-                showInLegend: false,
-                data: []
-            };
+        } else if (inputValue?.label) { // else display only todays values from api.openaq.org
+            let result = { ...seriesConfig };
             const selectedLocation = locations.find(ele => ele.name.toLowerCase() === inputValue?.label.toLowerCase());
             if (selectedLocation && selectedLocation?.parameters && selectedLocation?.parameters?.length) {
-                result.data = getParametersList().map(ele => getParameterValue(selectedLocation, ele))
+                result.data = getParameterNames().map(ele => getParameterValue(selectedLocation, ele))
             }
             
             return result;
         } else {
             return [];
         }
-    }, [inputValue?.label, forecastData, getParametersList, locations]);
+    }, [inputValue?.label, forecastData, locations, getParameterNames]);
 
     useEffect(() => {
         const parsedConfig = { ...options };
-        parsedConfig.xAxis.categories = getXAxis();
+        parsedConfig.xAxis.categories = getParameterNames();
         parsedConfig.series = getChartData();
         setConfig(parsedConfig);
-    }, [getChartData, getXAxis]);
+    }, [getChartData, getParameterNames]);
 
     return (
         <>
